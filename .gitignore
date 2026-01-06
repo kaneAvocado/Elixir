@@ -1,0 +1,13 @@
+/_build/
+/deps/
+*.ez
+erl_crash.dump
+*.beam
+.elixir_ls/
+.env
+.env.*
+!.env.example
+progress_tree/_build/
+progress_tree/deps/
+progress_tree/assets/node_modules/
+progress_tree/priv/static/assets/
