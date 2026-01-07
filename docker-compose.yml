@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: progress_tree
+      POSTGRES_PASSWORD: progress_tree
+      POSTGRES_DB: progress_tree_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U progress_tree"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: elixir:1.17
+    working_dir: /app/progress_tree
+    volumes:
+      - .:/app
+    environment:
+      MIX_ENV: dev
+      DATABASE_URL: ecto://progress_tree:progress_tree@db:5432/progress_tree_dev
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    command: bash -c "mix deps.get && mix ecto.setup && mix phx.server"
+    profiles: ["dev"]
+
+volumes:
+  pgdata:
