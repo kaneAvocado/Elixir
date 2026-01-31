@@ -9,6 +9,7 @@ defmodule ProgressTree.Knowledge do
 
   def list_genes do
     TechGene
+    |> preload(:author)
     |> order_by([g], desc: g.year, asc: g.title)
     |> Repo.all()
   end
