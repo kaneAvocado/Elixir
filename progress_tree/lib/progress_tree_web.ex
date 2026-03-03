@@ -89,6 +89,7 @@ defmodule ProgressTreeWeb do
       import Phoenix.HTML
       # Core UI components
       import ProgressTreeWeb.CoreComponents
+      import ProgressTreeWeb.GeneCard
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
