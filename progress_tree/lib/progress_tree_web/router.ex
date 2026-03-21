@@ -18,6 +18,7 @@ defmodule ProgressTreeWeb.Router do
     pipe_through :browser
 
     live "/", GenealogyLive.Index, :index
+    live "/genealogy/:id", GenealogyLive.Show, :show
   end
 
   if Application.compile_env(:progress_tree, :dev_routes) do
