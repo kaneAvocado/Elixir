@@ -2,19 +2,24 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
   use ProgressTreeWeb, :live_view
 
   alias ProgressTree.Knowledge
-  alias ProgressTree.Knowledge.Search
+  alias ProgressTree.Knowledge.{Graph, Search, Tree}
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     gene = Knowledge.get_gene_with_author!(id)
+    descendants = Tree.get_descendants(gene.id)
+    graph_data = Graph.build_graph_json(gene, descendants)
 
     {:ok,
      socket
      |> assign(:page_title, gene.title)
      |> assign(:gene, gene)
+     |> assign(:descendants, descendants)
      |> assign(:search_query, "")
      |> assign(:search_results, [])
-     |> assign(:selected_node, nil)}
+     |> assign(:selected_node, nil)
+     |> assign(:ancestry_path, [])
+     |> assign(:graph_data, graph_data)}
   end
 
   @impl true
@@ -45,7 +50,7 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
               type="text"
               name="query"
               value={@search_query}
-              placeholder="Поиск..."
+              placeholder="Поиск по названию или инв. номеру..."
               phx-debounce="300"
             />
           </form>
@@ -57,17 +62,41 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
               type="button"
               phx-click="select_node"
               phx-value-id={result.id}
-              class="w-full text-left p-3 mb-2 rounded-lg hover:bg-indigo-50 transition"
+              class="w-full text-left p-3 mb-2 rounded-lg hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition"
             >
-              <p class="text-sm font-semibold truncate"><%= result.title %></p>
-              <p class="text-xs text-gray-500"><%= result.inventory_number %></p>
+              <p class="text-sm font-semibold text-gray-800 truncate"><%= result.title %></p>
+              <p class="text-xs text-gray-500 mt-1">
+                <%= result.inventory_number %> • <%= result.department %>
+              </p>
             </button>
           <% end %>
         </div>
       </aside>
 
-      <main class="flex-1 bg-gray-100 flex items-center justify-center">
-        <p class="text-gray-400 text-sm">Область графа</p>
+      <main class="flex-1 relative bg-gray-100">
+        <div
+          id="genealogy-canvas"
+          phx-hook="GenealogyGraph"
+          phx-update="ignore"
+          data-graph={Jason.encode!(@graph_data)}
+          class="w-full h-full min-h-[480px]"
+        />
+
+        <div class="absolute bottom-5 left-5 bg-white/95 backdrop-blur rounded-xl shadow-lg p-4 text-xs">
+          <h4 class="font-semibold text-gray-700 mb-2">Типы связей</h4>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-6 h-0.5 bg-emerald-500 inline-block"></span>
+            <span>Наследование</span>
+          </div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-6 h-0.5 bg-amber-500 inline-block border-dashed border-t-2 border-amber-500"></span>
+            <span>Вдохновение</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-0.5 bg-blue-500 inline-block"></span>
+            <span>Сборка</span>
+          </div>
+        </div>
       </main>
     </div>
     """
