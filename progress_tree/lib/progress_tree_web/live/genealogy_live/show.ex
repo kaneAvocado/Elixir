@@ -36,6 +36,17 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
   end
 
   @impl true
+  def handle_event("show_lineage", %{"gene_id" => gene_id}, socket) do
+    path = Tree.get_lineage_path(gene_id)
+    node_ids = [String.to_integer(gene_id) | Enum.map(path, & &1.parent_id)]
+
+    {:noreply,
+     socket
+     |> assign(:ancestry_path, path)
+     |> push_event("highlight_path", %{node_ids: node_ids})}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="flex h-[calc(100vh-4rem)] bg-gray-50 -mx-4 sm:-mx-6 lg:-mx-8">
@@ -70,7 +81,27 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
               </p>
             </button>
           <% end %>
+        <div class="p-4 border-t">
+          <button
+            type="button"
+            phx-click="show_lineage"
+            phx-value-gene_id={@gene.id}
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition"
+          >
+            Показать цепочку наследования
+          </button>
         </div>
+
+        <%= if @ancestry_path != [] do %>
+          <div class="p-4 border-t max-h-40 overflow-y-auto">
+            <h4 class="text-xs font-semibold text-gray-600 mb-2">Предки</h4>
+            <ol class="text-xs space-y-1 text-gray-600">
+              <%= for step <- @ancestry_path do %>
+                <li><%= step.title %></li>
+              <% end %>
+            </ol>
+          </div>
+        <% end %>
       </aside>
 
       <main class="flex-1 relative bg-gray-100">
