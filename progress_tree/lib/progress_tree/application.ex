@@ -10,13 +10,11 @@ defmodule ProgressTree.Application do
     children = [
       ProgressTreeWeb.Telemetry,
       ProgressTree.Repo,
+      {Task.Supervisor, name: ProgressTree.TaskSupervisor},
+      ProgressTree.Genealogy.Walker,
       {DNSCluster, query: Application.get_env(:progress_tree, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: ProgressTree.PubSub},
-      # Start the Finch HTTP client for sending emails
       {Finch, name: ProgressTree.Finch},
-      # Start a worker by calling: ProgressTree.Worker.start_link(arg)
-      # {ProgressTree.Worker, arg},
-      # Start to serve requests, typically the last entry
       ProgressTreeWeb.Endpoint
     ]
 
