@@ -1,6 +1,7 @@
 defmodule ProgressTreeWeb.GenealogyLive.Show do
   use ProgressTreeWeb, :live_view
 
+  alias ProgressTree.Genealogy.Walker
   alias ProgressTree.Knowledge
   alias ProgressTree.Knowledge.{Graph, Search, Tree}
 
@@ -19,6 +20,7 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
      |> assign(:search_results, [])
      |> assign(:selected_node, nil)
      |> assign(:ancestry_path, [])
+     |> assign(:common_ancestor_result, nil)
      |> assign(:graph_data, graph_data)}
   end
 
@@ -36,9 +38,29 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
   end
 
   @impl true
+  def handle_info({:common_ancestor, result}, socket) do
+    {:noreply, assign(socket, :common_ancestor_result, result)}
+  end
+
+  @impl true
+  def handle_event("find_common", %{"other_id" => other_id}, socket) do
+    parent = self()
+    gene_a = socket.assigns.gene.id
+    gene_b = parse_id(other_id)
+
+    Task.Supervisor.async_nolink(ProgressTree.TaskSupervisor, fn ->
+      result = Walker.bidirectional_bfs(gene_a, gene_b)
+      send(parent, {:common_ancestor, result})
+    end)
+
+    {:noreply, assign(socket, :common_ancestor_result, :loading)}
+  end
+
+  @impl true
   def handle_event("show_lineage", %{"gene_id" => gene_id}, socket) do
     path = Tree.get_lineage_path(gene_id)
-    node_ids = [String.to_integer(gene_id) | Enum.map(path, & &1.parent_id)]
+    gene_id = parse_id(gene_id)
+    node_ids = [gene_id | Enum.map(path, & &1.parent_id)]
 
     {:noreply,
      socket
@@ -92,6 +114,31 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
           </button>
         </div>
 
+        <%= if @descendants != [] do %>
+          <div class="p-4 border-t">
+            <p class="text-xs text-gray-500 mb-2">Сравнить с потомком:</p>
+            <%= for d <- Enum.take(@descendants, 3) do %>
+              <button
+                type="button"
+                phx-click="find_common"
+                phx-value-other_id={d.child_id}
+                class="w-full text-left text-xs py-1 text-indigo-600 hover:text-indigo-800"
+              >
+                → <%= d.title %>
+              </button>
+            <% end %>
+            <%= if @common_ancestor_result == :loading do %>
+              <p class="text-xs text-gray-400 mt-2">Поиск общего предка…</p>
+            <% end %>
+            <%= if match?({:ok, _}, @common_ancestor_result) do %>
+              <% {:ok, %{common_ancestor: aid, path: path}} = @common_ancestor_result %>
+              <p class="text-xs text-green-700 mt-2">
+                Общий предок: #<%= aid %>, путь: <%= Enum.join(path, " → ") %>
+              </p>
+            <% end %>
+          </div>
+        <% end %>
+
         <%= if @ancestry_path != [] do %>
           <div class="p-4 border-t max-h-40 overflow-y-auto">
             <h4 class="text-xs font-semibold text-gray-600 mb-2">Предки</h4>
@@ -132,4 +179,7 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
     </div>
     """
   end
+
+  defp parse_id(id) when is_integer(id), do: id
+  defp parse_id(id) when is_binary(id), do: String.to_integer(id)
 end
