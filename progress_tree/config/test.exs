@@ -6,10 +6,10 @@ import Config
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :progress_tree, ProgressTree.Repo,
-  username: "progress_tree",
-  password: "progress_tree",
-  hostname: "localhost",
-  port: 5433,
+  username: System.get_env("PGUSER", "progress_tree"),
+  password: System.get_env("PGPASSWORD", "progress_tree"),
+  hostname: System.get_env("PGHOST", "localhost"),
+  port: String.to_integer(System.get_env("PGPORT", "5433")),
   database: "progress_tree_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
