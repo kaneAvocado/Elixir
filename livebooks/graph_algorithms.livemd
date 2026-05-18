@@ -1,0 +1,43 @@
+# Graph algorithms in ProgressTree
+
+## Setup
+
+```elixir
+Mix.install([
+  {:progress_tree, path: "../progress_tree"}
+])
+```
+
+> Run from repo root after `mix ecto.setup` in `progress_tree/`.
+
+## Descendants CTE
+
+```elixir
+alias ProgressTree.Knowledge.Tree
+
+# Replace with a real gene id from seeds
+Tree.get_descendants(1, 5)
+```
+
+## Lineage path
+
+```elixir
+Tree.get_lineage_path(1)
+```
+
+## Bidirectional BFS
+
+```elixir
+alias ProgressTree.Genealogy.Walker
+
+Walker.bidirectional_bfs(source_id, target_id)
+```
+
+Relation types in the graph:
+
+| Type | Meaning |
+|------|---------|
+| наследование | Full rework of parent design |
+| вдохновение | Methodology reused |
+| сборка | Parent is a component |
+| форк | Parallel branch |
