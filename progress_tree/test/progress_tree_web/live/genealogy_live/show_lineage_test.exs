@@ -42,7 +42,7 @@ defmodule ProgressTreeWeb.GenealogyLive.ShowLineageTest do
     %{root: root, leaf: leaf}
   end
 
-  test "show_lineage updates ancestry_path", %{conn: conn, leaf: leaf, root: root} do
+  test "show_lineage updates ancestry_path", %{conn: conn, leaf: leaf} do
     {:ok, view, _html} = live(conn, ~p"/genealogy/#{leaf.id}")
 
     html =
