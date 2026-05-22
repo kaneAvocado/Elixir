@@ -54,7 +54,7 @@ defmodule ProgressTree.Genealogy.Walker do
         {:error, :no_common_ancestor}
 
       turn == :forward and :queue.len(qf) > 0 ->
-        {current, qf} = :queue.out(qf)
+        {{:value, current}, qf} = :queue.out(qf)
 
         case meet?(current, backward) do
           {:ok, meeting} -> build_result(meeting, forward, backward)
@@ -62,7 +62,7 @@ defmodule ProgressTree.Genealogy.Walker do
         end
 
       true ->
-        {current, qb} = :queue.out(qb)
+        {{:value, current}, qb} = :queue.out(qb)
 
         case meet?(current, forward) do
           {:ok, meeting} -> build_result(meeting, forward, backward)

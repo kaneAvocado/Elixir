@@ -14,36 +14,76 @@ Each document is a **tech gene** linked by parent-child relations (inheritance, 
 ## Quick start
 
 ```bash
-# Start PostgreSQL
-docker compose up db -d
+docker run -d --name progress_tree_db \
+  -e POSTGRES_USER=progress_tree \
+  -e POSTGRES_PASSWORD=progress_tree \
+  -e POSTGRES_DB=progress_tree_dev \
+  -p 5433:5432 postgres:16-alpine
 
-# Dependencies, DB, server (requires Elixir locally or use Docker)
 cd progress_tree
 mix deps.get
+mix assets.setup && mix assets.build
 mix ecto.setup
 mix phx.server
 ```
 
 Open [http://localhost:4000](http://localhost:4000).
 
-### Docker-only workflow
+### Docker Makefile
 
 ```bash
-make setup   # deps + migrate (needs db running)
-make server  # phx.server on port 4000
+make setup   # deps + migrate
 make test
+make server
 ```
 
-DB credentials: `progress_tree` / `progress_tree`, port **5433** on host.
+DB: `progress_tree` / `progress_tree`, host port **5433**.
+
+## Portfolio — Weallfamily
+
+This project mirrors **genealogical tree** problems at scale:
+
+| Weallfamily domain | ProgressTree analogue |
+|--------------------|------------------------|
+| Persons & pedigrees | Tech genes & R&D lineage |
+| Parent-child links | `tech_relations` (наследование, форк, …) |
+| Common ancestor search | `Genealogy.Walker` bidirectional BFS |
+| Large graph UI | LiveView + D3 force layout |
+| Historical depth | Documents from 1987–2022 (demo seeds) |
+
+**Demo flow for interviews:**
+
+1. Open catalog, search `ПЧ-400`
+2. Open gene page — explore force graph
+3. Click **Показать цепочку наследования** — highlight path to 1987 prototype
+4. **Сравнить с потомком** — async common ancestor via GenServer
 
 ## Project layout
 
 ```
 progress_tree/
-  lib/progress_tree/knowledge/   # TechGene, Tree CTE, Search
-  lib/progress_tree/genealogy/   # Walker GenServer (BFS)
+  lib/progress_tree/knowledge/     # TechGene, Tree CTE, Search, Graph
+  lib/progress_tree/genealogy/     # Walker GenServer
   lib/progress_tree_web/live/genealogy_live/
   assets/js/hooks/genealogy_graph.js
+livebooks/graph_algorithms.livemd
+```
+
+## Deploy (Fly.io)
+
+```bash
+cd progress_tree
+fly launch --no-deploy
+fly secrets set DATABASE_URL=ecto://...
+fly deploy
+```
+
+## Tests
+
+```bash
+cd progress_tree
+mix test
+mix test --only integration   # requires seeds
 ```
 
 ## License

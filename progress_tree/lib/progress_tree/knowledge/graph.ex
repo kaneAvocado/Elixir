@@ -11,9 +11,9 @@ defmodule ProgressTree.Knowledge.Graph do
     node_ids = MapSet.new([root_gene.id | descendant_ids])
 
     nodes =
-      ([root_gene] ++ genes_for_ids(MapSet.to_list(descendant_ids)))
+      ([root_gene] ++ genes_for_ids(descendant_ids))
       |> Enum.uniq_by(& &1.id)
-      |> Enum.map(&node/1)
+      |> Enum.map(&gene_node/1)
 
     edges = edges_for_nodes(node_ids)
 
@@ -28,7 +28,7 @@ defmodule ProgressTree.Knowledge.Graph do
     |> Repo.all()
   end
 
-  defp node(gene) do
+  defp gene_node(gene) do
     %{
       id: gene.id,
       label: gene.title,

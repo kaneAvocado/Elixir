@@ -38,11 +38,6 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
   end
 
   @impl true
-  def handle_info({:common_ancestor, result}, socket) do
-    {:noreply, assign(socket, :common_ancestor_result, result)}
-  end
-
-  @impl true
   def handle_event("find_common", %{"other_id" => other_id}, socket) do
     parent = self()
     gene_a = socket.assigns.gene.id
@@ -58,14 +53,19 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
 
   @impl true
   def handle_event("show_lineage", %{"gene_id" => gene_id}, socket) do
-    path = Tree.get_lineage_path(gene_id)
     gene_id = parse_id(gene_id)
+    path = Tree.get_lineage_path(gene_id)
     node_ids = [gene_id | Enum.map(path, & &1.parent_id)]
 
     {:noreply,
      socket
      |> assign(:ancestry_path, path)
      |> push_event("highlight_path", %{node_ids: node_ids})}
+  end
+
+  @impl true
+  def handle_info({:common_ancestor, result}, socket) do
+    {:noreply, assign(socket, :common_ancestor_result, result)}
   end
 
   @impl true
@@ -103,6 +103,8 @@ defmodule ProgressTreeWeb.GenealogyLive.Show do
               </p>
             </button>
           <% end %>
+        </div>
+
         <div class="p-4 border-t">
           <button
             type="button"

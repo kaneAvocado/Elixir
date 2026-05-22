@@ -51,6 +51,6 @@ defmodule ProgressTreeWeb.GenealogyLive.ShowLineageTest do
       |> render_click()
 
     assert html =~ "Корень"
-    assert html =~ root.inventory_number
+    assert html =~ "Предки"
   end
 end

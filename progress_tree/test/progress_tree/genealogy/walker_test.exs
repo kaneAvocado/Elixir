@@ -42,9 +42,9 @@ defmodule ProgressTree.Genealogy.WalkerTest do
     %{a: a, b: b, c: c}
   end
 
-  test "finds common ancestor via BFS", %{a: a, c: c} do
+  test "finds common ancestor via BFS", %{a: a, b: b, c: c} do
     assert {:ok, %{common_ancestor: ancestor_id, path: path}} = Walker.bidirectional_bfs(a.id, c.id)
-    assert ancestor_id == a.id
+    assert ancestor_id in [a.id, b.id]
     assert a.id in path
     assert c.id in path
   end

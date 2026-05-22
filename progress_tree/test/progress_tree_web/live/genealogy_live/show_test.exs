@@ -33,7 +33,7 @@ defmodule ProgressTreeWeb.GenealogyLive.ShowTest do
   end
 
   test "select_node navigates", %{conn: conn, gene: gene} do
-    {:ok, _other} =
+    {:ok, other} =
       Knowledge.create_gene(%{
         title: "Другая разработка",
         inventory_number: "НИИ-2016-001",
@@ -46,12 +46,11 @@ defmodule ProgressTreeWeb.GenealogyLive.ShowTest do
 
     view |> form("form", %{query: "Другая"}) |> render_change()
 
-    {:ok, _view, html} =
-      view
-      |> element("button", "Другая разработка")
-      |> render_click()
-      |> follow_redirect(conn)
+    assert {:error, {:live_redirect, %{to: "/genealogy/" <> id}}} =
+             view
+             |> element("button[phx-value-id='#{other.id}']")
+             |> render_click()
 
-    assert html =~ "Другая разработка"
+    assert id == "#{other.id}"
   end
 end
